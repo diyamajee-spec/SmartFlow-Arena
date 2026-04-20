@@ -71,6 +71,4 @@ npm install
 node server.js
 ```
 Then navigate to `http://localhost:8080` in your browser.
-
-
 <p align="center">Built with ❤️ and ☕ for the Hackathon</p>
