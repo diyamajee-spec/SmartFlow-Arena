@@ -1,7 +1,5 @@
 <h1>SmartFlow Arena</h1>
 
-  <p><strong>🏆 Grand Prize Winner — Global AI Hackathon</strong></p>
-
   <p>
     An intelligent, real-time command center for modern sports and entertainment venues. 
     SmartFlow uses predictive AI to manage dynamic crowd dispersal, minimize concession wait times to near zero, and coordinate security operations in real-time.
