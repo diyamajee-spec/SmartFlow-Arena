@@ -157,26 +157,34 @@ function updateEnvUI() {
 /* ──────────────────────────────────────────────
    AI PERFORMANCE / DECISION LOG
    ────────────────────────────────────────────── */
-function logDecision(agent, message, type = 'info') {
+function logDecision(agent, message, type = 'info', category = 'STRATEGY') {
     const logEl = document.getElementById('decision-log');
     if (!logEl) return;
     
     const now = new Date();
     const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
-    
-    const entry = { time: timeStr, agent, message, type };
-    logEntries.push(entry);
-    if (logEntries.length > 50) logEntries.shift();
+    const ms = now.getMilliseconds().toString().padStart(3, '0');
     
     const item = document.createElement('div');
-    item.className = `log-entry ${type}`;
+    item.className = `log-entry ${type} ${category.toLowerCase()}`;
     item.innerHTML = `
         <span class="log-time">${timeStr}</span>
-        <span class="log-msg"><strong>${agent}:</strong> ${message}</span>
+        <span class="log-msg"><strong>[${category}] ${agent}:</strong> ${message}</span>
+        <span class="log-meta">${ms}ms</span>
     `;
     
     logEl.appendChild(item);
     logEl.scrollTop = logEl.scrollHeight;
+
+    // Trigger Firebase sync visual
+    triggerFirebaseSync();
+}
+
+function triggerFirebaseSync() {
+    const badge = document.getElementById('firebase-sync-badge');
+    if (!badge) return;
+    badge.classList.add('sync-active');
+    setTimeout(() => badge.classList.remove('sync-active'), 800);
 }
 
 function clearDecisionLog() {
@@ -190,15 +198,65 @@ function generateSyntheticLogEntry() {
     if (!isSimRunning) return;
     
     const agents = [
-        { name: 'CrowdFlow AI', actions: ['Detecting Sector B bottleneck. Rerouting via Gate 4.', 'Optimizing dispersal timing for early leavers.', 'Syncing gate throughput with entry expectations.'], type: 'strategy' },
-        { name: 'QueueBot', actions: ['Virtual Queue #VQ-882 allocated to Stand 5.', 'Predicting Halftime surge: +14% capacity requested.', 'Stand 1 wait time > 12 min. Notifying nearby staff.'], type: 'action' },
-        { name: 'SafetyGuard', actions: ['Anomalous biometric cluster in Sector C. Monitoring.', 'Security personnel dispatched to Gate A for flow assist.', 'Elevated density in North Stand. Advisory sent to staff.'], type: 'warning' },
-        { name: 'RevenueOpt', actions: ['Dynamic discount (15%) pushed to users in Sector G.', 'Low POS activity at Merch Stand 2. Strategic ad push sent.', 'Halftime pre-order window opened for VIP members.'], type: 'info' }
+        { name: 'CrowdFlow AI', actions: ['Detecting Sector B bottleneck. Rerouting 240 fans to Gate 4.', 'Optimizing dispersal timing for early leavers.', 'Syncing gate throughput with entry expectations.'], type: 'strategy', category: 'REROUTE' },
+        { name: 'QueueBot', actions: ['Virtual Queue #VQ-882 allocated to Stand 5.', 'Predicting Halftime surge: +14% capacity requested.', 'Stand 1 wait time > 12 min. Notifying nearby staff.'], type: 'action', category: 'ACTION' },
+        { name: 'SafetyGuard', actions: ['Anomalous biometric cluster in Sector C. Monitoring.', 'Security personnel dispatched to Gate A for flow assist.', 'Elevated density in North Stand. Advisory sent to staff.'], type: 'warning', category: 'SAFETY' },
+        { name: 'RevenueOpt', actions: ['Dynamic discount (15%) pushed to users in Sector G.', 'Low POS activity at Merch Stand 2. Strategic ad push sent.', 'Halftime pre-order window opened for VIP members.'], type: 'info', category: 'STRATEGY' }
     ];
     
     const agent = agents[Math.floor(Math.random() * agents.length)];
     const action = agent.actions[Math.floor(Math.random() * agent.actions.length)];
-    logDecision(agent.name, action, agent.type);
+    logDecision(agent.name, action, agent.type, agent.category);
+}
+
+/* ──────────────────────────────────────────────
+   GEN AI: ARENA INTELLIGENCE
+   ────────────────────────────────────────────── */
+async function askArenaAI() {
+    const input = document.getElementById('ai-query-input');
+    const btn = document.getElementById('ai-query-btn');
+    const status = document.getElementById('brain-think-status');
+    if (!input || !input.value.trim()) return;
+
+    const query = input.value;
+    input.value = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span>⚡</span> Analysis...';
+    status.textContent = '● THINKING';
+    status.style.color = 'var(--amber)';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/ai/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+        
+        if (data.ok) {
+            updateBrainPanel(data.prompt, data.reasoning, data.answer);
+            showToast('AI Intelligence Response Received', 'success');
+            logDecision('Neural Engine', `Query handled: "${query}"`, 'info', 'STRATEGY');
+        }
+    } catch (err) {
+        console.error('AI Query failed:', err);
+        showToast('AI Interface Error', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>✨</span> Ask AI';
+        status.textContent = '● IDLE';
+        status.style.color = 'var(--emerald)';
+    }
+}
+
+function updateBrainPanel(prompt, reasoning, output) {
+    const pEl = document.getElementById('brain-prompt');
+    const rEl = document.getElementById('brain-reasoning');
+    if (pEl) pEl.textContent = prompt;
+    if (rEl) rEl.textContent = reasoning;
+    
+    // Also inject the answer into a toast or a dedicated area
+    // For now, let's just use reasoning/prompt to stay in character
 }
 
 /* ──────────────────────────────────────────────

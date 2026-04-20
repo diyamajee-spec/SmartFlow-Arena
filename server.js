@@ -24,7 +24,7 @@ let lastUpdated = new Date();
 
 setInterval(() => {
     liveData = generateSnapshot();
-    dataVersion += ".1.0.0";
+    dataVersion += "1.0.0";
     lastUpdated = new Date();
     console.log(`[${lastUpdated.toLocaleTimeString()}] 🔄 Data snapshot v${dataVersion} generated`);
 }, 60000);          // every 60 seconds
@@ -208,6 +208,7 @@ function generateAlerts(count) {
         return {
             ...t,
             time: `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}`,
+            category: pick(['STRATEGY', 'ACTION', 'SAFETY', 'INFO', 'REROUTE']),
         };
     });
 }
@@ -317,6 +318,32 @@ app.post('/api/broadcast', (req, res) => {
     if (!message) return res.status(400).json({ ok: false, error: 'message required' });
     console.log(`[BROADCAST] → ${target || 'All'}: ${message}`);
     res.json({ ok: true, delivered: rand(10000, 48000), latencyMs: rand(80, 300) });
+});
+
+// NEW: AI Query Endpoint
+app.post('/api/ai/query', (req, res) => {
+    const { query } = req.body;
+    if (!query) return res.status(400).json({ ok: false, error: 'Query required' });
+
+    const q = query.toLowerCase();
+    let response = {
+        answer: "I'm analyzing the real-time telemetry from all stadium sectors. Overall flow is within normal parameters, though some congestion is forming near the north concourse.",
+        prompt: `System Role: Stadium Operations Intelligence\nContext: ${liveData.meta.stadium} - ${liveData.meta.event}\nUser Query: ${query}\nTask: Provide tactical insight based on live metrics.`,
+        reasoning: "Reviewing gate throughput vs. sector density. Correlating weather data (wind/rain) with entry patterns. Identifying bottleneck in Stand 1."
+    };
+
+    if (q.includes('concession') || q.includes('spike') || q.includes('food')) {
+        response.answer = `I've detected a 14% spike in demand at Stand 1 and 2. This is likely due to the current match pause. I recommend activating 3 additional staff members from the East Stand standby pool.`;
+        response.reasoning = "Analyzing POS transaction frequency. Stand 1 wait time > 12 min. Standby staff 'active' status checked. Rerouting 4 personnel.";
+    } else if (q.includes('gate') || q.includes('entry') || q.includes('crowd')) {
+        response.answer = `Gate A2 is approaching 90% capacity. Redirecting 400 fans from Gate A to Gate B1 (which is at 45% load). Estimated wait time reduction: 6 minutes.`;
+        response.reasoning = "Calculating delta between Gate A2 and B1 throughput. Dynamic routing vectors updated in Attendee App. Syncing with staff Team Alpha.";
+    } else if (q.includes('weather') || q.includes('rain')) {
+        response.answer = `Current weather conditions (${liveData.meta.weather.temp}°C ${liveData.meta.weather.condition}) are stable. If rain begins, I will automatically prioritize covered routes via Sectors G and H.`;
+        response.reasoning = "Fetching external environmental telemetry. Mapping covered vs uncovered stadium zones. Predictive routing prepared.";
+    }
+
+    res.json({ ok: true, ...response });
 });
 
 // ──────────────────────────────────────────────

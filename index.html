@@ -94,6 +94,14 @@
                 <span class="bs-label" id="bs-label">Connecting...</span>
                 <span class="bs-countdown" id="bs-countdown"></span>
             </div>
+            <div class="deployment-status">
+                <a href="https://console.cloud.google.com/run" target="_blank" class="badge-cloud">
+                    <span class="sync-dot"></span> GCP: Cloud Run (Live)
+                </a>
+                <div class="badge-firebase" id="firebase-sync-badge">
+                    <span class="sync-dot"></span> Firebase: Connected
+                </div>
+            </div>
             <button class="emergency-btn" id="emergency-btn" onclick="toggleEmergency()">
                 <span>⚠</span> Emergency
             </button>
@@ -125,6 +133,14 @@
                     </div>
                 </div>
             </header>
+
+            <!-- GenAI Query Interface -->
+            <div class="ai-query-container">
+                <input type="text" class="ai-query-input" id="ai-query-input" placeholder="Query Arena Intelligence (e.g. 'What's the prediction for Gate 3 surge?')">
+                <button class="ai-query-btn" id="ai-query-btn" onclick="askArenaAI()">
+                    <span>✨</span> Ask AI
+                </button>
+            </div>
 
             <!-- KPI Cards Row -->
             <div class="kpi-grid">
@@ -472,6 +488,24 @@
                                 <span class="impact-dot"></span>
                                 <span id="env-impact-msg">Analyzing weather impact on flow...</span>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: AI Agent Brain -->
+                <div class="glass-card brain-panel-card">
+                    <div class="card-header">
+                        <h3>🧠 AI Agent Brain — Internal Neural Monologue</h3>
+                        <span class="pulse-badge" id="brain-think-status">● IDLE</span>
+                    </div>
+                    <div class="brain-content">
+                        <div class="brain-section">
+                            <div class="brain-label">Active Prompt</div>
+                            <div class="prompt-view" id="brain-prompt">Awaiting tactical query...</div>
+                        </div>
+                        <div class="brain-section">
+                            <div class="brain-label">Agent Reasoning</div>
+                            <div class="reasoning-view" id="brain-reasoning">Neural pathways standby.</div>
                         </div>
                     </div>
                 </div>
