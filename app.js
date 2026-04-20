@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPhaseTimeline();
     renderPhoneApp();
     startLiveClock();
-    startCrowdSimulation();
+    initCrowdMap();                      // NEW: Google Maps init
+    startDecisionLogger();               // NEW: Renamed from startCrowdSimulation
     startRibbonTimer();
     fetchSnapshot();                     // first load
     fetchEnvironmentalData();            // NEW: load external data
@@ -235,8 +236,8 @@ async function askArenaAI() {
         
         if (data.ok) {
             updateBrainPanel(data.prompt, data.reasoning, data.answer);
-            showToast('AI Intelligence Response Received', 'success');
-            logDecision('Neural Engine', `Query handled: "${query}"`, 'info', 'STRATEGY');
+            showToast('Tactical Insight Received', 'success');
+            logDecision('Neural Engine', data.answer, 'info', 'STRATEGY');
         }
     } catch (err) {
         console.error('AI Query failed:', err);
@@ -249,14 +250,31 @@ async function askArenaAI() {
     }
 }
 
-function updateBrainPanel(prompt, reasoning, output) {
+function updateBrainPanel(prompt, reasoning, answer) {
     const pEl = document.getElementById('brain-prompt');
     const rEl = document.getElementById('brain-reasoning');
-    if (pEl) pEl.textContent = prompt;
-    if (rEl) rEl.textContent = reasoning;
+    const aEl = document.getElementById('brain-output');
     
-    // Also inject the answer into a toast or a dedicated area
-    // For now, let's just use reasoning/prompt to stay in character
+    if (pEl) pEl.textContent = prompt;
+    
+    // Animate reasoning/answer for a "streaming" feel
+    if (rEl) simulateStreaming(rEl, reasoning);
+    if (aEl) simulateStreaming(aEl, answer);
+}
+
+function simulateStreaming(el, text) {
+    el.textContent = '';
+    let i = 0;
+    const speed = 15; // ms per char
+    const timer = setInterval(() => {
+        if (i < text.length) {
+            el.textContent += text.charAt(i);
+            i++;
+            el.scrollTop = el.scrollHeight;
+        } else {
+            clearInterval(timer);
+        }
+    }, speed);
 }
 
 /* ──────────────────────────────────────────────
@@ -902,17 +920,83 @@ function drawMiniHeatmap() {
 }
 
 /* ──────────────────────────────────────────────
-   CROWD SIMULATION CANVAS
+   GOOGLE MAPS & CROWD HEATMAP
 ────────────────────────────────────────────── */
-let particles = [];
+let map = null;
+let heatmap = null;
 
-function startCrowdSimulation() {
-    particles = Array.from({ length: 120 }, () => createParticle());
+function initCrowdMap() {
+    const mapEl = document.getElementById('crowd-map');
+    if (!mapEl) return;
+
+    // Center on Emirates Stadium
+    const stadiumCoords = { lat: 51.5549, lng: -0.1084 };
+
+    map = new google.maps.Map(mapEl, {
+        zoom: 18,
+        center: stadiumCoords,
+        mapTypeId: 'satellite',
+        disableDefaultUI: true,
+        styles: [
+            { elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }] },
+            { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+        ],
+    });
+
+    // Initialize Heatmap
+    heatmap = new google.maps.visualization.HeatmapLayer({
+        data: getHeatmapData(),
+        map: map,
+        radius: 30,
+        opacity: 0.8
+    });
+}
+
+function getHeatmapData() {
+    // Convert zone density to map points
+    if (!liveSnapshot || !liveSnapshot.zones) return [];
+    
+    // Mock mapping zone IDs to coords around the stadium
+    const zoneCoords = {
+        'NW': { lat: 51.5555, lng: -0.1095 },
+        'NE': { lat: 51.5555, lng: -0.1075 },
+        'N': { lat: 51.5558, lng: -0.1084 },
+        'SW': { lat: 51.5543, lng: -0.1095 },
+        'SE': { lat: 51.5543, lng: -0.1075 },
+        'S': { lat: 51.5540, lng: -0.1084 },
+        'EL': { lat: 51.5549, lng: -0.1070 },
+        'EU': { lat: 51.5552, lng: -0.1070 },
+        'WL': { lat: 51.5549, lng: -0.1098 },
+        'WU': { lat: 51.5552, lng: -0.1098 },
+    };
+
+    const points = [];
+    liveSnapshot.zones.forEach(z => {
+        const coord = zoneCoords[z.id];
+        if (coord) {
+            // Add multiple points based on density for intensity
+            const weight = z.density * 10;
+            points.push({ location: new google.maps.LatLng(coord.lat, coord.lng), weight: weight });
+        }
+    });
+    return points;
+}
+
+function updateMapHeatmap() {
+    if (heatmap) {
+        heatmap.setData(getHeatmapData());
+    }
+}
+
+function startDecisionLogger() {
     drawMiniHeatmap();
     if (!miniHeatInterval) {
-        miniHeatInterval = setInterval(drawMiniHeatmap, 3000);
+        miniHeatInterval = setInterval(() => {
+            drawMiniHeatmap();
+            updateMapHeatmap();
+        }, 3000);
     }
-    animateCrowd();
 }
 
 function createParticle() {
@@ -1007,20 +1091,71 @@ function drawZoneOverlay(ctx, W, H, isDark) {
     });
 }
 
-function drawFlowVectors(ctx, W, H) {
-    ctx.strokeStyle = 'rgba(0,212,255,0.5)';
-    ctx.lineWidth = 1.5;
-    const step = 60;
-    for (let x = step; x < W; x += step) {
-        for (let y = step; y < H; y += step) {
-            const angle = Math.atan2(H / 2 - y, W / 2 - x) + (Math.random() - 0.5) * 0.5;
-            const len = 18;
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-            ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
-            ctx.stroke();
-        }
+/* ──────────────────────────────────────────────
+   GEMINI VISION ANALYSIS
+────────────────────────────────────────────── */
+function previewCamera() {
+    const camId = document.getElementById('vision-cam-select').value;
+    const preview = document.getElementById('vision-preview');
+    if (preview) {
+        preview.src = `/api/cameras/${camId}/stream?t=${Date.now()}`;
     }
+    const results = document.getElementById('vision-results');
+    if (results) results.innerHTML = '<div class="vr-placeholder">Awaiting neural scan...</div>';
+}
+
+async function runVisionAnalysis() {
+    const camId = document.getElementById('vision-cam-select').value;
+    const btn = document.getElementById('run-vision-btn');
+    const overlay = document.getElementById('vision-scan-overlay');
+    const results = document.getElementById('vision-results');
+
+    if (!btn || !overlay || !results) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳</span> Analyzing...';
+    overlay.classList.add('scanning');
+    results.innerHTML = '<div class="vr-placeholder">Decrypting neural feed...</div>';
+
+    try {
+        const res = await fetch(`${API_BASE}/api/ai/vision`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cameraId: camId })
+        });
+        const data = await res.json();
+
+        overlay.classList.remove('scanning');
+        
+        if (data.ok) {
+            renderVisionResults(data);
+            showToast('Vision Analysis Complete', 'success');
+            logDecision('Vision Engine', `Camera ${camId} scan: ${data.level} density detected.`, 'info', 'SAFETY');
+        } else {
+            throw new Error(data.error);
+        }
+    } catch (err) {
+        console.error('Vision analysis failed:', err);
+        overlay.classList.remove('scanning');
+        results.innerHTML = '<div class="vr-placeholder" style="color:var(--red)">Vision Engine Error: Check API Key</div>';
+        showToast('Vision Engine Failure', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>👁️</span> Scan Feed';
+    }
+}
+
+function renderVisionResults(data) {
+    const results = document.getElementById('vision-results');
+    if (!results) return;
+
+    results.innerHTML = `
+        <div class="vr-item"><span class="vr-lbl">DENSITY:</span><span class="vr-val">${data.density}% (${data.level})</span></div>
+        <div class="vr-item"><span class="vr-lbl">HEADCOUNT:</span><span class="vr-val">~${data.headcount}</span></div>
+        <div class="vr-item"><span class="vr-lbl">METRIC:</span><span class="vr-val">${data.recommendation}</span></div>
+        <div class="vr-item"><span class="vr-lbl">INSIGHT:</span><span class="vr-val" style="font-size:10px">${data.reasoning}</span></div>
+        ${data.anomalies.map(a => `<span class="vr-anomaly">⚠ ${a}</span>`).join('')}
+    `;
 }
 
 function toggleSimulation() {

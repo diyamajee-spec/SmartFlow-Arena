@@ -9,7 +9,9 @@
     "install-check": "node -e \"console.log('Node.js', process.version, '— OK');\""
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
     "express": "^4.18.2"
   },
   "devDependencies": {

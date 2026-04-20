@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ╔══════════════════════════════════════════════╗
 # ║  SmartFlow Arena — Local Startup Script      ║
-# ║  v3.5 · Arena Neural Engine Edition          ║
+# ║  v4.0 · Gemini Intelligence Engine Edition         ║
 # ║  Usage: bash run_local.sh                    ║
 # ╚══════════════════════════════════════════════╝
 
@@ -29,6 +29,16 @@ fi
 
 NODE_VER=$(node -v)
 echo -e "${GREEN}  ✓  Node.js ${NODE_VER} detected${RESET}"
+
+# ── Step 1.5: Verify Environment ──────────────
+echo ""
+echo -e "${YELLOW}[1.5/3] Validating Neural Configuration...${RESET}"
+if [ ! -f ".env" ]; then
+    echo -e "${RED}  ✗  .env file missing.${RESET}"
+    echo "     Create one with GEMINI_API_KEY=your_key"
+    exit 1
+fi
+echo -e "${GREEN}  ✓  Intelligence environment detected${RESET}"
 
 # ── Step 2: Install dependencies ──────────────
 echo ""
