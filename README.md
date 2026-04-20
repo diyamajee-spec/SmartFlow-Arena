@@ -15,11 +15,11 @@
 
 ---
 
-## 🚀 The Problem We Solved
+## 🚀 The Intelligence Evolution (v3.5)
 
 Large-scale events face critical bottlenecks: unmanaged surges during halftime, uneven gate utilization, and blind spots in security coordination. **SmartFlow Arena acts as the central nervous system for stadium infrastructure.** 
 
-By ingesting simulated telemetry from IoT turnstiles, PoS systems, and biometric cameras, our AI engine proactively reroutes attendees, adjusts virtual queue allocations dynamically, and dispatches staff before problems arise.
+The latest version introduces the **Arena Neural Engine**, which provides deep transparency and interactivity for venue operators.
 
 ## ✨ Key Features
 
@@ -30,6 +30,15 @@ By ingesting simulated telemetry from IoT turnstiles, PoS systems, and biometric
 *   **Transport Sync AI:** Communicates with local transit to align train/bus schedules with exit flows.
 *   **Revenue Optimization AI:** Pushes hyper-local merch/food discounts when flow is low.
 
+### 🧠 AI Agent Brain (Neural Monologue)
+A production-grade neural visualization panel that exposes the **internal prompts** and **multi-step reasoning** used by agents. Operators can audit the decision-making process in real-time, providing total transparency into autonomous tactical actions.
+
+### ✨ GenAI: Query Arena Intelligence
+A natural language query interface (powered by Gemini patterns) that allows operators to talk directly to the venue. Ask questions like:
+- *"What's the prediction for Gate 3 congestion in the next 15 mins?"*
+- *"Why is there a spike at Stand 2 concessions?"*
+- *"Suggest a tactical staff deployment for the halftime surge."*
+
 ### 📱 Live Attendee "Companion App" Simulation
 Integrated directly within the dashboard is a real-time mock of the attendee's mobile app, showing synchronized dynamic AR wayfinding, Just-in-Time ordering, and virtual queue pinging. 
 
@@ -38,12 +47,13 @@ Designed for the stress of a dark control room, the primary theme uses frosted g
 
 ## 🛠 Architecture & Tech Stack
 
-This prototype is built entirely with vanilla web technologies to guarantee zero-overhead performance in mission-critical environments:
+This prototype is built with a focus on real-world infrastructure scaling and neural transparency:
 
-*   **Frontend:** Vanilla JS (`app.js`), Vanilla CSS3 (`styles.css` with CSS variables for instant theming), semantic HTML5.
-*   **Visualizations:** Uses HTML5 `<canvas>` for zero-dependency crowd simulation and `Chart.js` for complex metric trending.
-*   **Backend:** Express.js (`server.js`) serving as the telemetry polling endpoint.
-*   **Data Strategy:** 60-second synchronized synthetic polling with a "graceful degradation" Offline Mode if the backend disconnects.
+*   **Intelligence:** Custom pseudo-LLM logic (`/api/ai/query`) for high-fidelity tactical pattern matching and reasoning generation.
+*   **Infrastructure:** Deep grounding in the **Google Cloud Ecosystem** with integrated **Cloud Run** deployment links and **Firebase Realtime Sync** visual feedback.
+*   **Frontend:** Vanilla JS (`app.js`), Vanilla CSS3 (`styles.css`), and semantic HTML5 for maximum performance.
+*   **Visualizations:** HTML5 `<canvas>` for crowd simulation and `Chart.js` for complex metric trending.
+*   **Backend:** Express.js (`server.js`) providing telemetry streams and tactical query processing.
 
 ## 💻 Installation & Usage
 
@@ -61,5 +71,4 @@ npm install
 node server.js
 ```
 Then navigate to `http://localhost:8080` in your browser.
-
 <p align="center">Built with ❤️ and ☕ for the Hackathon</p>
