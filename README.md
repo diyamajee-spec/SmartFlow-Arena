@@ -62,7 +62,4 @@ node server.js
 ```
 Then navigate to `http://localhost:8080` in your browser.
 
-## 🏆 Hackathon Judges' Comments
-> *"SmartFlow Arena solves a very tangible logistics problem. The attention to detail in the UI and the 'Offline Mode' fallback shows a mature understanding of mission-critical systems. Fantastic execution."* 
-
 <p align="center">Built with ❤️ and ☕ for the Hackathon</p>
