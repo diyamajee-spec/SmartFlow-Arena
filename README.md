@@ -1,7 +1,4 @@
-<div align="center">
-  <img src="https://via.placeholder.com/150x150/00D4FF/0d1220?text=SFA" alt="SmartFlow Arena Logo" width="120" height="120">
-
-  <h1>SmartFlow Arena</h1>
+<h1>SmartFlow Arena</h1>
 
   <p><strong>🏆 Grand Prize Winner — Global AI Hackathon</strong></p>
 
