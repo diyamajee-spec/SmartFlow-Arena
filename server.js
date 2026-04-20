@@ -7,9 +7,16 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
+require('dotenv').config();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = 8080;
+
+// Initialize Gemini
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 app.use(cors());
 app.use(express.json());
@@ -24,7 +31,7 @@ let lastUpdated = new Date();
 
 setInterval(() => {
     liveData = generateSnapshot();
-    dataVersion += "1.0.0";
+    dataVersion += 1;
     lastUpdated = new Date();
     console.log(`[${lastUpdated.toLocaleTimeString()}] 🔄 Data snapshot v${dataVersion} generated`);
 }, 60000);          // every 60 seconds
@@ -320,33 +327,161 @@ app.post('/api/broadcast', (req, res) => {
     res.json({ ok: true, delivered: rand(10000, 48000), latencyMs: rand(80, 300) });
 });
 
-// NEW: AI Query Endpoint
-app.post('/api/ai/query', (req, res) => {
+// NEW: AI Query Endpoint with Real Gemini Integration
+app.post('/api/ai/query', async (req, res) => {
     const { query } = req.body;
     if (!query) return res.status(400).json({ ok: false, error: 'Query required' });
 
-    const q = query.toLowerCase();
-    let response = {
-        answer: "I'm analyzing the real-time telemetry from all stadium sectors. Overall flow is within normal parameters, though some congestion is forming near the north concourse.",
-        prompt: `System Role: Stadium Operations Intelligence\nContext: ${liveData.meta.stadium} - ${liveData.meta.event}\nUser Query: ${query}\nTask: Provide tactical insight based on live metrics.`,
-        reasoning: "Reviewing gate throughput vs. sector density. Correlating weather data (wind/rain) with entry patterns. Identifying bottleneck in Stand 1."
-    };
+    console.log(`[AI] Processing query: "${query}"`);
 
-    if (q.includes('concession') || q.includes('spike') || q.includes('food')) {
-        response.answer = `I've detected a 14% spike in demand at Stand 1 and 2. This is likely due to the current match pause. I recommend activating 3 additional staff members from the East Stand standby pool.`;
-        response.reasoning = "Analyzing POS transaction frequency. Stand 1 wait time > 12 min. Standby staff 'active' status checked. Rerouting 4 personnel.";
-    } else if (q.includes('gate') || q.includes('entry') || q.includes('crowd')) {
-        response.answer = `Gate A2 is approaching 90% capacity. Redirecting 400 fans from Gate A to Gate B1 (which is at 45% load). Estimated wait time reduction: 6 minutes.`;
-        response.reasoning = "Calculating delta between Gate A2 and B1 throughput. Dynamic routing vectors updated in Attendee App. Syncing with staff Team Alpha.";
-    } else if (q.includes('weather') || q.includes('rain')) {
-        response.answer = `Current weather conditions (${liveData.meta.weather.temp}°C ${liveData.meta.weather.condition}) are stable. If rain begins, I will automatically prioritize covered routes via Sectors G and H.`;
-        response.reasoning = "Fetching external environmental telemetry. Mapping covered vs uncovered stadium zones. Predictive routing prepared.";
+    try {
+        // Construct detailed telemetry context for the LLM
+        const context = {
+            stadium: liveData.meta.stadium,
+            event: liveData.meta.event,
+            attendance: liveData.meta.attendance,
+            matchTime: `${liveData.meta.matchTime}' (${liveData.meta.matchPeriod})`,
+            weather: `${liveData.meta.weather.temp}°C ${liveData.meta.weather.condition}`,
+            kpis: liveData.kpis,
+            zones: liveData.zones.map(z => `${z.name} (${z.id}): ${Math.round(z.density * 100)}% density, ${z.trend} trend`),
+            topAlerts: liveData.alerts.slice(0, 3).map(a => a.msg)
+        };
+
+        const prompt = `
+            You are the SmartFlow Arena Tactical AI, an advanced venue intelligence engine.
+            Your goal is to provide precise, tactical insights and recommendations based on real-time telemetry.
+
+            STADIUM CONTEXT:
+            - Event: ${context.event} at ${context.stadium}
+            - Attendance: ${context.attendance.toLocaleString()}
+            - Match Time: ${context.matchTime}
+            - Weather: ${context.weather}
+
+            CURRENT METRICS:
+            - Avg Wait: ${context.kpis.avgWaitMin} min
+            - Active Alerts: ${context.kpis.activeAlerts}
+            - Revenue: $${context.kpis.revenueKUSD}K/hr
+            - Safety Score: ${context.kpis.safetyScore}%
+
+            ZONE STATUS:
+            ${context.zones.join('\n            ')}
+
+            LATEST ALERTS:
+            - ${context.topAlerts.join('\n            - ')}
+
+            USER QUERY: "${query}"
+
+            TASK:
+            1. Analyze the telemetry data relative to the query.
+            2. Provide a tactical "Neural Monologue" (internal reasoning) detailing how you correlated the data.
+            3. Provide a clear, actionable "Tactical Response" (final answer).
+            4. Keep the tone professional, concise, and high-tech.
+
+            OUTPUT FORMAT (JSON):
+            {
+                "answer": "Your final tactical response here.",
+                "reasoning": "Step-by-step neural reasoning here.",
+                "prompt": "Tactical Analysis Phase: Telemetry Scan -> Correlation -> Strategy"
+            }
+        `;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        
+        // Clean up JSON if LLM added markdown blocks
+        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const aiResponse = JSON.parse(jsonStr);
+
+        res.json({ ok: true, ...aiResponse });
+
+    } catch (err) {
+        console.error('Gemini API Error:', err);
+        res.status(500).json({ 
+            ok: false, 
+            error: 'AI Engine failed',
+            answer: "The neural engine is temporarily offline. I'm reverting to local telemetry protocols.",
+            reasoning: "API Connection Refused. Check GEMINI_API_KEY in .env.",
+            prompt: "Failure Mode: Offline Redundancy Activated"
+        });
     }
-
-    res.json({ ok: true, ...response });
 });
 
 // ──────────────────────────────────────────────
+// ──────────────────────────────────────────────
+// VISION & ASSETS
+// ──────────────────────────────────────────────
+
+const MOCK_CAMERAS = [
+    { id: 'cam-01', name: 'Concourse A North', path: 'C:/Users/hp/.gemini/antigravity/brain/9bac6f22-4654-480e-8f37-b64840c70f1f/stadium_cam_crowded_1776704914600.png' },
+    { id: 'cam-02', name: 'West Gate Entry', path: 'C:/Users/hp/.gemini/antigravity/brain/9bac6f22-4654-480e-8f37-b64840c70f1f/stadium_cam_sparse_1776704939267.png' }
+];
+
+// Serve mock camera images
+app.get('/api/cameras', (req, res) => {
+    res.json({ ok: true, cameras: MOCK_CAMERAS.map(c => ({ id: c.id, name: c.name })) });
+});
+
+app.get('/api/cameras/:id/stream', (req, res) => {
+    const cam = MOCK_CAMERAS.find(c => c.id === req.params.id);
+    if (!cam) return res.status(404).json({ ok: false, error: 'Camera not found' });
+    res.sendFile(cam.path);
+});
+
+// AI Vision Analysis Endpoint
+app.post('/api/ai/vision', async (req, res) => {
+    const { cameraId } = req.body;
+    const cam = MOCK_CAMERAS.find(c => c.id === cameraId);
+    if (!cam) return res.status(400).json({ ok: false, error: 'Invalid camera ID' });
+
+    try {
+        console.log(`[VISION] Analyzing ${cam.name}...`);
+        
+        // Read image as base64
+        const fileData = fs.readFileSync(cam.path);
+        const base64Image = fileData.toString('base64');
+
+        const prompt = `
+            Analyze this security camera feed from a sports stadium.
+            Provide a tactical summary including:
+            1. Crowd Density (Percentage and Level: Low/Moderate/High/Critical)
+            2. Estimated Headcount in view.
+            3. Anomalies or Safety Risks (e.g., blockages, abandoned items, aggressive movement).
+            4. Tactical Recommendation.
+
+            OUTPUT FORMAT (JSON):
+            {
+                "density": 85,
+                "level": "High",
+                "headcount": 450,
+                "anomalies": ["Bottleneck at sector exit", "Abandoned bag near pillar"],
+                "recommendation": "Deploy flow marshals to sector North-A.",
+                "reasoning": "Internal Neural Vision monologue: Correlating motion vectors with static floorplan..."
+            }
+        `;
+
+        const imageParts = [
+            {
+                inlineData: {
+                    data: base64Image,
+                    mimeType: "image/png"
+                }
+            }
+        ];
+
+        const result = await model.generateContent([prompt, ...imageParts]);
+        const text = result.response.text();
+        
+        const jsonStr = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const visionResponse = JSON.parse(jsonStr);
+
+        res.json({ ok: true, ...visionResponse });
+
+    } catch (err) {
+        console.error('Gemini Vision Error:', err);
+        res.status(500).json({ ok: false, error: 'Vision engine failure' });
+    }
+});
+
 // START
 // ──────────────────────────────────────────────
 app.listen(PORT, () => {

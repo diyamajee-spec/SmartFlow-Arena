@@ -3603,7 +3603,7 @@ body.emergency-active .main-content::before {
     letter-spacing: 1px;
 }
 
-.prompt-view, .reasoning-view {
+.prompt-view, .reasoning-view, .output-view {
     background: rgba(0, 0, 0, 0.2);
     padding: 12px;
     border-radius: var(--r-md);
@@ -3614,6 +3614,12 @@ body.emergency-active .main-content::before {
     border: 1px solid var(--border);
     max-height: 180px;
     overflow-y: auto;
+}
+
+.output-view {
+    color: var(--text-primary);
+    border-left: 3px solid var(--emerald);
+    background: rgba(0, 255, 136, 0.05);
 }
 
 .prompt-view {
@@ -3724,10 +3730,134 @@ body.emergency-active .main-content::before {
 .log-entry.warning { border-left-color: var(--red); }
 .log-entry.info { border-left-color: var(--amber); }
 
-.log-meta {
-    font-size: 9px;
+
+/* ── Google Maps & Vision UI ── */
+.map-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: var(--bg-surface);
+}
+
+.map-overlay-vitals {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    display: flex;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.mv-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.mv-lbl {
+    font-size: 8px;
     color: var(--text-muted);
     font-family: var(--font-mono);
-    margin-left: auto;
+}
+
+.mv-val {
+    font-size: 10px;
+    color: var(--cyan);
+    font-family: var(--font-mono);
+}
+
+.vision-analysis-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.vision-feed-selector {
+    display: flex;
+    gap: 8px;
+}
+
+.vision-monitor {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.vision-monitor img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+}
+
+.vision-scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--emerald);
+    box-shadow: 0 0 10px var(--emerald);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.vision-scan-overlay.scanning {
+    animation: scanLine 2s linear infinite;
+    opacity: 1;
+}
+
+@keyframes scanLine {
+    0% { top: 0; }
+    100% { top: 100%; }
+}
+
+.vision-results {
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    padding: 12px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    line-height: 1.5;
+    border: 1px solid var(--border);
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.vr-item {
+    margin-bottom: 6px;
+}
+
+.vr-lbl {
+    color: var(--cyan);
+    margin-right: 6px;
+}
+
+.vr-val {
+    color: var(--text-primary);
+}
+
+.vr-anomaly {
+    color: var(--red);
+    background: var(--red-dim);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-top: 4px;
+    display: block;
+}
+
+.vr-placeholder {
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
 }
 
