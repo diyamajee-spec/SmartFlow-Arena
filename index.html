@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartFlow Arena — AI-Powered Venue Intelligence Platform</title>
+    <meta name="description"
+        content="SmartFlow Arena transforms large-scale sporting venues into intelligent, responsive environments with AI-powered crowd flow, zero-wait queues, and real-time coordination." />
+    <meta name="keywords" content="smart venue, AI stadium, crowd management, queue intelligence, sports technology" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="styles.css?v=3.0" />
+</head>
+
+<body>
+
+    <!-- Ambient background -->
+    <div class="ambient-bg">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo-mark">
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <polygon points="16,2 30,10 30,22 16,30 2,22 2,10" fill="none" stroke="#00D4FF"
+                        stroke-width="1.5" />
+                    <polygon points="16,8 24,12 24,20 16,24 8,20 8,12" fill="rgba(0,212,255,0.15)" stroke="#00FF88"
+                        stroke-width="1" />
+                    <circle cx="16" cy="16" r="3" fill="#00D4FF" />
+                </svg>
+            </div>
+            <div class="logo-text">
+                <span class="logo-name">SmartFlow</span>
+                <span class="logo-sub">Arena OS v3.2</span>
+            </div>
+            <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                <span id="theme-icon">☀️</span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-tab="command" id="nav-command">
+                <span class="nav-icon">⬡</span>
+                <span class="nav-label">Command Center</span>
+                <span class="nav-badge live">LIVE</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="crowd" id="nav-crowd">
+                <span class="nav-icon">◈</span>
+                <span class="nav-label">Crowd Flow</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="queue" id="nav-queue">
+                <span class="nav-icon">◎</span>
+                <span class="nav-label">Queue Intel</span>
+                <span class="nav-badge alert" id="queue-alert-badge" style="display:none">!</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="coordination" id="nav-coordination">
+                <span class="nav-icon">⬢</span>
+                <span class="nav-label">AI Hub</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="attendee" id="nav-attendee">
+                <span class="nav-icon">◉</span>
+                <span class="nav-label">Attendee App</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="analytics" id="nav-analytics">
+                <span class="nav-icon">◆</span>
+                <span class="nav-label">Analytics</span>
+            </a>
+            <a href="#" class="nav-item" data-tab="event" id="nav-event">
+                <span class="nav-icon">◇</span>
+                <span class="nav-label">Event Control</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="event-info">
+                <div class="event-dot"></div>
+                <div>
+                    <div class="event-name" id="sidebar-event-name">Arsenal vs Man City</div>
+                    <div class="event-time" id="sidebar-event-time">65' — 2nd Half</div>
+                </div>
+            </div>
+            <!-- Backend status pill -->
+            <div class="backend-status" id="backend-status">
+                <span class="bs-dot" id="bs-dot"></span>
+                <span class="bs-label" id="bs-label">Connecting...</span>
+                <span class="bs-countdown" id="bs-countdown"></span>
+            </div>
+            <button class="emergency-btn" id="emergency-btn" onclick="toggleEmergency()">
+                <span>⚠</span> Emergency
+            </button>
+        </div>
+    </aside>
+
+    <!-- Update Countdown Ribbon -->
+    <div class="update-ribbon" id="update-ribbon">
+        <div class="update-ribbon-fill" id="ribbon-fill" style="width:100%"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Command Center                     -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel active" id="tab-command">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Command Center</h1>
+                    <p class="page-subtitle">Real-time venue intelligence · <span class="status-dot-inline"></span> All
+                        systems operational</p>
+                </div>
+                <div class="header-actions">
+                    <div class="time-display" id="live-clock">00:00:00</div>
+                    <div class="capacity-badge">
+                        <span id="current-capacity">47,832</span> / 52,000
+                    </div>
+                </div>
+            </header>
+
+            <!-- KPI Cards Row -->
+            <div class="kpi-grid">
+                <div class="kpi-card" id="kpi-gates">
+                    <div class="kpi-icon cyan">⛩</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Gates Open</div>
+                        <div class="kpi-value" id="kpi-gates-val">24 / 28</div>
+                        <div class="kpi-trend up">↑ 2 just opened</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-gates" width="80" height="30"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card" id="kpi-wait">
+                    <div class="kpi-icon emerald">⏱</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Avg Wait Time</div>
+                        <div class="kpi-value" id="kpi-wait-val">3.2 min</div>
+                        <div class="kpi-trend up">↓ 41% vs baseline</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-wait" width="80" height="30"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card" id="kpi-alerts">
+                    <div class="kpi-icon amber">⚡</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Active AI Alerts</div>
+                        <div class="kpi-value" id="kpi-alerts-val">3</div>
+                        <div class="kpi-trend neutral">2 resolved this hour</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-alerts" width="80" height="30"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card" id="kpi-revenue">
+                    <div class="kpi-icon purple">💰</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Revenue / Hour</div>
+                        <div class="kpi-value" id="kpi-revenue-val">$184K</div>
+                        <div class="kpi-trend up">↑ 27% via virtual queue</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-revenue" width="80" height="30"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card" id="kpi-satisfaction">
+                    <div class="kpi-icon pink">★</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Fan Satisfaction</div>
+                        <div class="kpi-value" id="kpi-sat-val">94.2%</div>
+                        <div class="kpi-trend up">↑ NPS +68</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-sat" width="80" height="30"></canvas>
+                    </div>
+                </div>
+                <div class="kpi-card" id="kpi-safety">
+                    <div class="kpi-icon red">🛡</div>
+                    <div class="kpi-body">
+                        <div class="kpi-label">Safety Score</div>
+                        <div class="kpi-value" id="kpi-safety-val">99.1%</div>
+                        <div class="kpi-trend neutral">0 incidents detected</div>
+                    </div>
+                    <div class="kpi-sparkline">
+                        <canvas id="spark-safety" width="80" height="30"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mid Row: Mini Heatmap + AI Alert Feed -->
+            <div class="two-col-grid">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>Live Crowd Density</h3>
+                        <span class="pulse-badge">● LIVE</span>
+                    </div>
+                    <canvas id="mini-heatmap" width="500" height="260"></canvas>
+                    <div class="heatmap-legend">
+                        <span class="legend-item low">Low</span>
+                        <div class="legend-bar"></div>
+                        <span class="legend-item high">Critical</span>
+                    </div>
+                </div>
+
+                <div class="glass-card alert-feed-card">
+                    <div class="card-header">
+                        <h3>AI Alert Stream</h3>
+                        <button class="mini-btn" onclick="clearAlerts()">Clear</button>
+                    </div>
+                    <div class="alert-feed" id="alert-feed"></div>
+                </div>
+            </div>
+
+            <!-- Bottom: Zone Status Grid -->
+            <div class="glass-card">
+                <div class="card-header">
+                    <h3>Zone Status Overview</h3>
+                    <div class="zone-legend">
+                        <span class="zone-leg-item" style="color:#00FF88">● Normal</span>
+                        <span class="zone-leg-item" style="color:#FFB800">● Moderate</span>
+                        <span class="zone-leg-item" style="color:#FF4466">● Critical</span>
+                    </div>
+                </div>
+                <div class="zone-grid" id="zone-grid">
+                    <!-- populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Crowd Flow                         -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-crowd">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Crowd Flow Intelligence</h1>
+                    <p class="page-subtitle">Real-time heatmap · BLE beacon tracking · AI predictive routing</p>
+                </div>
+                <div class="header-actions">
+                    <select class="control-select" id="crowd-layer-select" onchange="setCrowdLayer(this.value)">
+                        <option value="density">Density View</option>
+                        <option value="flow">Flow Vectors</option>
+                        <option value="heat">Thermal Map</option>
+                    </select>
+                    <button class="control-btn active" id="sim-toggle" onclick="toggleSimulation()">⏸ Pause</button>
+                </div>
+            </header>
+
+            <div class="crowd-layout">
+                <div class="glass-card crowd-map-card">
+                    <div class="card-header">
+                        <h3>Stadium Flow Map — <span id="stadium-name-display">Emirates Stadium</span></h3>
+                        <div class="map-controls">
+                            <span class="map-stat">Tracking <strong id="tracked-count">47,832</strong> persons</span>
+                        </div>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="crowd-canvas" width="760" height="480"></canvas>
+                        <div class="canvas-overlay" id="canvas-overlay">
+                            <!-- hotspot tooltips injected by JS -->
+                        </div>
+                    </div>
+                    <div class="gate-status-strip" id="gate-strip">
+                        <!-- gate indicators injected by JS -->
+                    </div>
+                </div>
+
+                <div class="crowd-sidebar">
+                    <div class="glass-card flow-card">
+                        <h4>Gate Throughput</h4>
+                        <div class="gate-list" id="gate-list"></div>
+                    </div>
+                    <div class="glass-card flow-card">
+                        <h4>AI Routing Suggestions</h4>
+                        <div class="routing-list" id="routing-list"></div>
+                    </div>
+                    <div class="glass-card flow-card">
+                        <h4>Predictive Next 15 min</h4>
+                        <canvas id="prediction-chart" width="220" height="120"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Queue Intelligence                 -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-queue">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Zero-Wait Queue Intelligence</h1>
+                    <p class="page-subtitle">Computer vision monitoring · Virtual queue · Pre-ordering</p>
+                </div>
+                <div class="header-actions">
+                    <button class="control-btn" onclick="addVirtualQueueDemo()">+ Join Virtual Queue</button>
+                    <button class="control-btn active" onclick="triggerSurge()">⚡ Simulate Surge</button>
+                </div>
+            </header>
+
+            <div class="queue-grid">
+                <!-- Concessions -->
+                <div class="glass-card queue-section">
+                    <div class="card-header">
+                        <h3>🍔 Concession Stands</h3>
+                        <span class="section-count" id="concession-count">12 active stands</span>
+                    </div>
+                    <div id="concession-list" class="queue-item-list"></div>
+                </div>
+
+                <!-- Restrooms -->
+                <div class="glass-card queue-section">
+                    <div class="card-header">
+                        <h3>🚻 Restroom Zones</h3>
+                        <span class="section-count">8 zones monitored</span>
+                    </div>
+                    <div id="restroom-list" class="queue-item-list"></div>
+                </div>
+
+                <!-- Entry Gates -->
+                <div class="glass-card queue-section">
+                    <div class="card-header">
+                        <h3>🚪 Security & Entry</h3>
+                        <span class="section-count">28 gates</span>
+                    </div>
+                    <div id="entry-list" class="queue-item-list"></div>
+                </div>
+
+                <!-- Virtual Queue Panel -->
+                <div class="glass-card queue-section virtual-queue-panel">
+                    <div class="card-header">
+                        <h3>📱 Virtual Queue Slots</h3>
+                        <span class="section-count" id="vq-count">0 active slots</span>
+                    </div>
+                    <div id="virtual-queue-list" class="virtual-queue-list"></div>
+                    <div class="vq-stats">
+                        <div class="vq-stat"><span id="vq-saved">0</span><small>Min Saved</small></div>
+                        <div class="vq-stat"><span id="vq-orders">0</span><small>Orders</small></div>
+                        <div class="vq-stat"><span id="vq-revenue">$0</span><small>Revenue</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Halftime surge banner -->
+            <div class="surge-banner" id="surge-banner" style="display:none">
+                <div class="surge-icon">⚡</div>
+                <div class="surge-text">
+                    <strong>Halftime Surge Detected</strong>
+                    <span>AI is dynamically reallocating 8 staff members · Virtual queue activated at all concession
+                        stands</span>
+                </div>
+                <button onclick="dismissSurge()">✕</button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: AI Coordination Hub               -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-coordination">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">AI Coordination Hub</h1>
+                    <p class="page-subtitle">Staff dispatch · Transport integration · Emergency response</p>
+                </div>
+                <div class="header-actions">
+                    <button class="control-btn danger" onclick="toggleEmergency()">⚠ Emergency Mode</button>
+                </div>
+            </header>
+
+            <div class="coord-grid">
+                <!-- Staff Dispatch -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>👥 Staff Deployment</h3>
+                    </div>
+                    <div class="staff-map-container">
+                        <canvas id="staff-map" width="380" height="220"></canvas>
+                    </div>
+                    <div class="staff-list" id="staff-list"></div>
+                </div>
+
+                <!-- Transport Integration -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>🚇 Transport Integration</h3>
+                    </div>
+                    <div class="transport-list" id="transport-list"></div>
+                    <div class="transport-chart-wrapper">
+                        <canvas id="transport-chart" width="380" height="150"></canvas>
+                    </div>
+                </div>
+
+                <!-- AI Agents -->
+                <div class="glass-card agent-card">
+                    <div class="card-header">
+                        <h3>🤖 Active AI Agents</h3>
+                    </div>
+                    <div class="agent-list">
+                        <!-- Agent list... -->
+                        <div class="agent-item" id="agent-crowd">
+                            <div class="agent-avatar cyan">🌊</div>
+                            <div class="agent-info">
+                                <div class="agent-name">CrowdFlow AI</div>
+                                <div class="agent-status" id="agent-crowd-status">Optimizing gate routing...</div>
+                            </div>
+                            <div class="agent-badge active">ACTIVE</div>
+                        </div>
+                        <div class="agent-item" id="agent-queue">
+                            <div class="agent-avatar emerald">⏱</div>
+                            <div class="agent-info">
+                                <div class="agent-name">QueueBot</div>
+                                <div class="agent-status" id="agent-queue-status">Predicting halftime surge...</div>
+                            </div>
+                            <div class="agent-badge active">ACTIVE</div>
+                        </div>
+                        <div class="agent-item" id="agent-safety">
+                            <div class="agent-avatar red">🛡</div>
+                            <div class="agent-info">
+                                <div class="agent-name">SafetyGuard</div>
+                                <div class="agent-status" id="agent-safety-status">Monitoring 248 camera feeds</div>
+                            </div>
+                            <div class="agent-badge active">ACTIVE</div>
+                        </div>
+                        <div class="agent-item" id="agent-revenue">
+                            <div class="agent-avatar purple">💡</div>
+                            <div class="agent-info">
+                                <div class="agent-name">RevenueOpt</div>
+                                <div class="agent-status" id="agent-revenue-status">Upsell push sent to 3.2K users</div>
+                            </div>
+                            <div class="agent-badge active">ACTIVE</div>
+                        </div>
+                        <div class="agent-item" id="agent-transport">
+                            <div class="agent-avatar amber">🚌</div>
+                            <div class="agent-info">
+                                <div class="agent-name">TransitSync</div>
+                                <div class="agent-status" id="agent-transport-status">Coordinating 14 bus routes</div>
+                            </div>
+                            <div class="agent-badge active">ACTIVE</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: External Influence Panel -->
+                <div class="glass-card env-card">
+                    <div class="card-header">
+                        <h3>🌍 External Influence</h3>
+                        <span class="bs-countdown" id="env-update-time">v3.2.1</span>
+                    </div>
+                    <div class="env-layout-hub">
+                        <div class="env-main">
+                            <div class="env-temp" id="env-temp">--°C</div>
+                            <div class="env-cond" id="env-cond">Fetching data...</div>
+                        </div>
+                        <div class="env-details">
+                            <div class="env-stat">
+                                <span class="env-lbl">Wind Speed</span>
+                                <span class="env-val" id="env-wind">-- km/h</span>
+                            </div>
+                            <div class="env-stat">
+                                <span class="env-lbl">Humidity</span>
+                                <span class="env-val" id="env-humid">--%</span>
+                            </div>
+                            <div class="env-impact" id="env-impact">
+                                <span class="impact-dot"></span>
+                                <span id="env-impact-msg">Analyzing weather impact on flow...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- NEW: AI Performance Log -->
+                <div class="glass-card performance-log-card">
+                    <div class="card-header">
+                        <h3>📋 AI System Performance Log</h3>
+                        <button class="control-btn" style="padding:4px 8px; font-size:10px;" onclick="clearDecisionLog()">Clear</button>
+                    </div>
+                    <div class="decision-log" id="decision-log">
+                        <div class="log-entry system">
+                            <span class="log-time">System</span>
+                            <span class="log-msg">Neural engine initialized. Awaiting tactical events...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Push Notifications -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h3>📡 Broadcast Center</h3>
+                    </div>
+                    <div class="broadcast-panel">
+                        <div class="broadcast-type-select">
+                            <button class="type-btn active" data-type="routing">Routing</button>
+                            <button class="type-btn" data-type="promo">Promo</button>
+                            <button class="type-btn" data-type="safety">Safety</button>
+                            <button class="type-btn" data-type="transport">Transport</button>
+                        </div>
+                        <textarea class="broadcast-input" id="broadcast-input"
+                            placeholder="Compose AI-assisted message..."></textarea>
+                        <div class="broadcast-controls">
+                            <select class="control-select" id="broadcast-target">
+                                <option>All Attendees (47,832)</option>
+                                <option>North Stand (12,400)</option>
+                                <option>South Stand (10,200)</option>
+                                <option>VIP Section (3,100)</option>
+                                <option>Concourse A (8,500)</option>
+                            </select>
+                            <button class="control-btn active" onclick="sendBroadcast()">Send</button>
+                        </div>
+                        <div class="broadcast-log" id="broadcast-log"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Attendee App                       -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-attendee">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Attendee Experience</h1>
+                    <p class="page-subtitle">Mobile app · AR navigation · Personalization · Pre-ordering</p>
+                </div>
+            </header>
+
+            <div class="attendee-layout">
+                <!-- Phone Preview -->
+                <div class="phone-showcase">
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen" id="phone-screen">
+                            <div class="phone-app" id="phone-app-view">
+                                <!-- content injected by JS -->
+                            </div>
+                        </div>
+                        <div class="phone-home-bar"></div>
+                    </div>
+                    <div class="phone-nav-dots">
+                        <button class="dot-btn active" onclick="setPhoneView('home')"></button>
+                        <button class="dot-btn" onclick="setPhoneView('navigate')"></button>
+                        <button class="dot-btn" onclick="setPhoneView('order')"></button>
+                        <button class="dot-btn" onclick="setPhoneView('ar')"></button>
+                    </div>
+                    <div class="phone-labels">
+                        <span onclick="setPhoneView('home')">Home</span>
+                        <span onclick="setPhoneView('navigate')">Navigate</span>
+                        <span onclick="setPhoneView('order')">Order</span>
+                        <span onclick="setPhoneView('ar')">AR View</span>
+                    </div>
+                </div>
+
+                <!-- Features Panel -->
+                <div class="features-panel">
+                    <div class="feature-grid">
+                        <div class="feature-card glass-card" onclick="setPhoneView('navigate')">
+                            <div class="feat-icon">🗺️</div>
+                            <h4>AR Navigation</h4>
+                            <p>BLE beacon-guided turn-by-turn directions. Live density overlays adapt to crowd in real
+                                time.</p>
+                            <div class="feat-stat">↓ 61% time to seat</div>
+                        </div>
+                        <div class="feature-card glass-card" onclick="setPhoneView('order')">
+                            <div class="feat-icon">🍺</div>
+                            <h4>Pre-Order & Delivery</h4>
+                            <p>Order food/drinks from seat. Express pickup or direct delivery. Skip all queues.</p>
+                            <div class="feat-stat">4-min avg fulfillment</div>
+                        </div>
+                        <div class="feature-card glass-card">
+                            <div class="feat-icon">🎫</div>
+                            <h4>Biometric Entry</h4>
+                            <p>Walk-through NFC/facial recognition gates. Zero-touch, zero-queue venue access.</p>
+                            <div class="feat-stat">↓ 74% entry time</div>
+                        </div>
+                        <div class="feature-card glass-card">
+                            <div class="feat-icon">🧠</div>
+                            <h4>AI Personalization</h4>
+                            <p>Recommendations based on history, current offer, and preference profile.</p>
+                            <div class="feat-stat">+32% engagement</div>
+                        </div>
+                        <div class="feature-card glass-card" onclick="setPhoneView('ar')">
+                            <div class="feat-icon">📡</div>
+                            <h4>Live AR Overlays</h4>
+                            <p>Point phone at pitch for live stats, player info, replay highlights.</p>
+                            <div class="feat-stat">12ms latency</div>
+                        </div>
+                        <div class="feature-card glass-card">
+                            <div class="feat-icon">♿</div>
+                            <h4>Accessibility Mode</h4>
+                            <p>Voice-guided navigation, ADA priority routing, family zones, real-time captions.</p>
+                            <div class="feat-stat">100% WCAG 2.1 AA</div>
+                        </div>
+                    </div>
+
+                    <!-- Journey Timeline -->
+                    <div class="glass-card journey-card">
+                        <div class="card-header">
+                            <h3>Fan Journey Timeline</h3>
+                        </div>
+                        <div class="journey-timeline">
+                            <div class="journey-step completed" id="jstep-arrival">
+                                <div class="jstep-dot"></div>
+                                <div class="jstep-content">
+                                    <strong>Pre-Arrival</strong>
+                                    <span>Parking recommendations sent · ETA 12 min</span>
+                                </div>
+                            </div>
+                            <div class="journey-step completed" id="jstep-entry">
+                                <div class="jstep-dot"></div>
+                                <div class="jstep-content">
+                                    <strong>Entry</strong>
+                                    <span>Biometric scan — 4.2 sec · Gate C recommended</span>
+                                </div>
+                            </div>
+                            <div class="journey-step active" id="jstep-during">
+                                <div class="jstep-dot pulse"></div>
+                                <div class="jstep-content">
+                                    <strong>During Event</strong>
+                                    <span>In-seat delivery confirmed · Order #A-4421 en route</span>
+                                </div>
+                            </div>
+                            <div class="journey-step" id="jstep-half">
+                                <div class="jstep-dot"></div>
+                                <div class="jstep-content">
+                                    <strong>Halftime</strong>
+                                    <span>Virtual queue slot #VQ-882 reserved for Stand 5</span>
+                                </div>
+                            </div>
+                            <div class="journey-step" id="jstep-exit">
+                                <div class="jstep-dot"></div>
+                                <div class="jstep-content">
+                                    <strong>Exit</strong>
+                                    <span>Optimal dispersal route queued · Bus 14 in 8 min</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Analytics                         -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-analytics">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Analytics & Reports</h1>
+                    <p class="page-subtitle">Historical trends · ROI metrics · Predictive insights</p>
+                </div>
+                <div class="header-actions">
+                    <select class="control-select" id="analytics-range">
+                        <option>Today — Arsenal vs Man City</option>
+                        <option>Last 30 Days</option>
+                        <option>Season 2025–26</option>
+                    </select>
+                    <button class="control-btn active" onclick="exportReport()">↓ Export PDF</button>
+                </div>
+            </header>
+
+            <div class="analytics-grid">
+                <!-- Crowd Flow Chart -->
+                <div class="glass-card chart-card wide">
+                    <div class="card-header">
+                        <h3>Crowd Flow Over Time</h3>
+                    </div>
+                    <canvas id="crowd-flow-chart" height="100"></canvas>
+                </div>
+
+                <!-- Revenue Chart -->
+                <div class="glass-card chart-card">
+                    <div class="card-header">
+                        <h3>Concession Revenue Uplift</h3>
+                    </div>
+                    <canvas id="revenue-chart" height="180"></canvas>
+                </div>
+
+                <!-- Gate Radar -->
+                <div class="glass-card chart-card">
+                    <div class="card-header">
+                        <h3>Gate Throughput Radar</h3>
+                    </div>
+                    <canvas id="gate-radar-chart" height="180"></canvas>
+                </div>
+
+                <!-- Wait Time Improvement -->
+                <div class="glass-card chart-card">
+                    <div class="card-header">
+                        <h3>Wait Time Reduction</h3>
+                    </div>
+                    <canvas id="wait-chart" height="180"></canvas>
+                </div>
+
+                <!-- NPS / Satisfaction -->
+                <div class="glass-card chart-card stat-summary-card">
+                    <div class="card-header">
+                        <h3>Fan NPS Trend</h3>
+                    </div>
+                    <canvas id="nps-chart" height="180"></canvas>
+                </div>
+
+                <!-- ROI Summary -->
+                <div class="glass-card roi-card">
+                    <h3>ROI Summary</h3>
+                    <div class="roi-grid">
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-wait">–41%</div>
+                            <div class="roi-lbl">Wait Time</div>
+                        </div>
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-rev">+27%</div>
+                            <div class="roi-lbl">Revenue</div>
+                        </div>
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-nps">+68</div>
+                            <div class="roi-lbl">NPS Pts</div>
+                        </div>
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-incidents">–94%</div>
+                            <div class="roi-lbl">Incidents</div>
+                        </div>
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-staff">–18%</div>
+                            <div class="roi-lbl">Staff Cost</div>
+                        </div>
+                        <div class="roi-item">
+                            <div class="roi-val" id="roi-payback">9mo</div>
+                            <div class="roi-lbl">Payback</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────── -->
+        <!-- TAB: Event Control                      -->
+        <!-- ──────────────────────────────────────── -->
+        <div class="tab-panel" id="tab-event">
+            <header class="page-header">
+                <div>
+                    <h1 class="page-title">Event Control Panel</h1>
+                    <p class="page-subtitle">Lifecycle management · Phase transitions · Transport coordination</p>
+                </div>
+                <div class="header-actions">
+                    <button class="control-btn active" onclick="advancePhase()">⏭ Advance Phase</button>
+                </div>
+            </header>
+
+            <div class="event-layout">
+                <!-- Phase Timeline -->
+                <div class="glass-card phase-card">
+                    <div class="card-header">
+                        <h3>Event Lifecycle</h3>
+                    </div>
+                    <div class="phase-timeline" id="phase-timeline"></div>
+                </div>
+
+                <!-- Live Metrics -->
+                <div class="glass-card live-metrics-card">
+                    <div class="card-header">
+                        <h3>Phase Metrics</h3>
+                    </div>
+                    <div id="phase-metrics-content"></div>
+                </div>
+
+                <!-- Match Info -->
+                <div class="glass-card match-card">
+                    <div class="card-header">
+                        <h3>Event Details</h3>
+                    </div>
+                    <div class="match-info">
+                        <div class="match-teams">
+                            <div class="team">
+                                <div class="team-badge red">ARS</div>
+                                <span>Arsenal</span>
+                            </div>
+                            <div class="match-score" id="match-score">2 — 1</div>
+                            <div class="team">
+                                <div class="team-badge blue">MCI</div>
+                                <span>Man City</span>
+                            </div>
+                        </div>
+                        <div class="match-meta">
+                            <div class="meta-item"><span>Stadium</span><strong>Emirates</strong></div>
+                            <div class="meta-item"><span>Capacity</span><strong>60,704</strong></div>
+                            <div class="meta-item"><span>Attendance</span><strong id="attendance-val">47,832</strong>
+                            </div>
+                            <div class="meta-item"><span>Match Time</span><strong id="match-time-val">65'</strong></div>
+                            <div class="meta-item"><span>Weather</span><strong>18°C ☁</strong></div>
+                            <div class="meta-item"><span>Security Level</span><strong>Green ✓</strong></div>
+                        </div>
+                    </div>
+                    <div class="match-actions">
+                        <button class="control-btn" onclick="changeEvent('cricket')">🏏 Cricket Mode</button>
+                        <button class="control-btn" onclick="changeEvent('olympics')">🏅 Olympics Mode</button>
+                        <button class="control-btn active" onclick="changeEvent('football')">⚽ Football Mode</button>
+                    </div>
+                </div>
+
+                <!-- System Status -->
+                <div class="glass-card system-card">
+                    <div class="card-header">
+                        <h3>System Health</h3>
+                    </div>
+                    <div class="system-grid" id="system-grid"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Emergency Overlay -->
+    <div class="emergency-overlay" id="emergency-overlay" style="display:none">
+        <div class="emergency-modal">
+            <div class="emergency-header">
+                <div class="emergency-icon-large">⚠</div>
+                <h2>EMERGENCY MODE ACTIVE</h2>
+                <p>All AI agents switched to evacuation protocol</p>
+            </div>
+            <div class="evacuation-routes">
+                <h4>Active Evacuation Routes</h4>
+                <div class="evac-route"><span class="evac-gate">North Gates (A1–A8)</span><span
+                        class="evac-status safe">CLEAR → Open</span></div>
+                <div class="evac-route"><span class="evac-gate">South Gates (B1–B6)</span><span
+                        class="evac-status safe">CLEAR → Open</span></div>
+                <div class="evac-route"><span class="evac-gate">East Concourse (C1–C4)</span><span
+                        class="evac-status warning">MODERATE → Use N/S</span></div>
+                <div class="evac-route"><span class="evac-gate">West VIP Exit (D1–D2)</span><span
+                        class="evac-status safe">CLEAR → Priority</span></div>
+            </div>
+            <div class="emergency-actions">
+                <button class="emergency-action-btn" onclick="sendEvacAlert()">📡 Broadcast Evacuation Alert</button>
+                <button class="emergency-action-btn secondary" onclick="toggleEmergency()">✓ All Clear —
+                    Deactivate</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Floating Theme Toggle (always visible) -->
+    <button class="float-theme-btn" id="float-theme-btn" onclick="toggleTheme()" title="Toggle Theme (T)">
+        <span id="float-theme-icon">☀️</span>
+    </button>
+
+    <script src="app.js?v=3.0"></script>
+</body>
+
+</html>
